@@ -180,14 +180,16 @@ async def websocket_endpoint(websocket: WebSocket):
     await ws_manager.connect(websocket)
     logger.info("WebSocket client connected │ total=%d", ws_manager.client_count)
 
+    # Run send loop (queue → client) concurrently with receive loop (keepalive)
+    send_task = asyncio.create_task(ws_manager.send_loop(websocket))
+
     try:
         while True:
-            # Keep connection alive — listen for client messages (e.g., pings)
-            data = await websocket.receive_text()
-            # Respond to ping with pong
-            if data == "ping":
-                await websocket.send_text("pong")
-    except (WebSocketDisconnect, RuntimeError, Exception):
+            await websocket.receive_text()
+    except Exception:
+        pass
+    finally:
+        send_task.cancel()
         ws_manager.disconnect(websocket)
         logger.info("WebSocket client disconnected │ total=%d", ws_manager.client_count)
 

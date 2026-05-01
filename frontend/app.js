@@ -589,7 +589,14 @@ function connectWS() {
     };
 
     state.ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        // Skip non-JSON messages (e.g. "pong" keepalive responses)
+        if (event.data === 'pong') return;
+        let data;
+        try {
+            data = JSON.parse(event.data);
+        } catch (e) {
+            return; // Skip any malformed messages
+        }
         state.readings++;
         dom.readingsCounter.textContent = state.readings;
         dom.timestampDisplay.textContent = new Date(data.timestamp).toLocaleTimeString();
