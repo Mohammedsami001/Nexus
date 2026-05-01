@@ -145,20 +145,20 @@ class RobotSimulator:
         self.prev_speed = self.speed
         self.prev_direction = self.direction
 
-        # Update sensor values
-        proximity = round(self._update_proximity(), 1)
-        speed = round(self._update_speed(), 2)
-        direction = round(self._update_direction(), 1)
+        # Update sensor values — float() converts numpy.float64 → Python float for JSON
+        proximity = float(round(self._update_proximity(), 1))
+        speed = float(round(self._update_speed(), 2))
+        direction = float(round(self._update_direction(), 1))
 
         # Calculate deltas (used by ML feature vector M2)
-        speed_delta = round(speed - self.prev_speed, 3)
-        direction_delta = round(
+        speed_delta = float(round(speed - self.prev_speed, 3))
+        direction_delta = float(round(
             min(
                 abs(direction - self.prev_direction),
                 360 - abs(direction - self.prev_direction),
             ),
             1,
-        )
+        ))
 
         # Update position for path viz
         self._update_position(speed, direction)
@@ -171,8 +171,8 @@ class RobotSimulator:
             "direction_deg": direction,
             "speed_delta": speed_delta,
             "direction_delta": direction_delta,
-            "pos_x": round(self.pos_x, 1),
-            "pos_y": round(self.pos_y, 1),
+            "pos_x": float(round(self.pos_x, 1)),
+            "pos_y": float(round(self.pos_y, 1)),
             "tick": self.tick_count,
             "anomaly_injected": False,
         }
