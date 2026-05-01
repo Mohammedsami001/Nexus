@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-time robot telemetry dashboard with ML anomaly detection — Cloud-Deployed Robot Simulation Dashboard">
+    <title>NEXUS — Robot Command Center</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js v4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Particle Background Canvas -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Scan-line Overlay -->
+    <div class="scanline-overlay"></div>
+
+    <!-- Anomaly Flash Overlay -->
+    <div id="anomaly-flash" class="anomaly-flash"></div>
+
+    <!-- Main Application -->
+    <div id="app" class="app-container">
+
+        <!-- ═══ HEADER BAR ═══ -->
+        <header id="header" class="header">
+            <div class="header-left">
+                <div class="logo-group">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 40 40" width="36" height="36">
+                            <circle cx="20" cy="20" r="18" fill="none" stroke="var(--accent-cyan)" stroke-width="1.5" opacity="0.5"/>
+                            <circle cx="20" cy="20" r="12" fill="none" stroke="var(--accent-cyan)" stroke-width="1"/>
+                            <circle cx="20" cy="20" r="4" fill="var(--accent-cyan)"/>
+                            <line x1="20" y1="2" x2="20" y2="8" stroke="var(--accent-cyan)" stroke-width="1.5"/>
+                            <line x1="20" y1="32" x2="20" y2="38" stroke="var(--accent-cyan)" stroke-width="1.5"/>
+                            <line x1="2" y1="20" x2="8" y2="20" stroke="var(--accent-cyan)" stroke-width="1.5"/>
+                            <line x1="32" y1="20" x2="38" y2="20" stroke="var(--accent-cyan)" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>NEXUS</h1>
+                        <span class="logo-subtitle">Robot Command Center</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-center">
+                <div id="connection-status" class="connection-status offline">
+                    <span class="status-dot"></span>
+                    <span class="status-text">CONNECTING</span>
+                    <span id="latency-display" class="latency">--ms</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-stat">
+                    <span class="stat-label">ANOMALIES</span>
+                    <span id="anomaly-counter" class="stat-value anomaly-count">0</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">READINGS</span>
+                    <span id="readings-counter" class="stat-value">0</span>
+                </div>
+                <div class="header-stat">
+                    <span class="stat-label">ML MODEL</span>
+                    <span id="ml-status" class="stat-value ml-status">WARMING UP</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ═══ STATUS BAR ═══ -->
+        <div id="status-bar" class="status-bar">
+            <div class="status-item">
+                <span class="status-label">UPTIME</span>
+                <span id="uptime-display" class="status-value">00:00:00</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">BUFFER</span>
+                <span id="buffer-display" class="status-value">0 / 1000</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">TICK RATE</span>
+                <span id="tickrate-display" class="status-value">1.0 Hz</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">WS CLIENTS</span>
+                <span id="clients-display" class="status-value">0</span>
+            </div>
+            <div class="warmup-bar-container">
+                <span class="status-label">ML WARMUP</span>
+                <div class="warmup-bar">
+                    <div id="warmup-progress" class="warmup-fill" style="width: 0%"></div>
+                </div>
+                <span id="warmup-text" class="status-value">0%</span>
+            </div>
+        </div>
+
+        <!-- ═══ MAIN DASHBOARD GRID ═══ -->
+        <main class="dashboard-grid">
+
+            <!-- ── ROW 1: Gauges ── -->
+            <section id="speed-card" class="card gauge-card">
+                <div class="card-header">
+                    <span class="card-icon">⚡</span>
+                    <h2>SPEED</h2>
+                </div>
+                <div class="gauge-container">
+                    <svg id="speed-gauge" viewBox="0 0 200 200" class="speed-gauge-svg">
+                        <!-- Background track -->
+                        <circle cx="100" cy="100" r="85" fill="none" stroke="var(--bg-card-hover)" stroke-width="8" stroke-dasharray="400 134" stroke-linecap="round" transform="rotate(135 100 100)"/>
+                        <!-- Tick marks -->
+                        <g id="speed-ticks" class="gauge-ticks"></g>
+                        <!-- Value arc -->
+                        <circle id="speed-arc" cx="100" cy="100" r="85" fill="none" stroke="var(--accent-cyan)" stroke-width="8" stroke-dasharray="0 534" stroke-linecap="round" transform="rotate(135 100 100)" class="gauge-arc"/>
+                        <!-- Glow arc (duplicate for glow effect) -->
+                        <circle id="speed-arc-glow" cx="100" cy="100" r="85" fill="none" stroke="var(--accent-cyan)" stroke-width="14" stroke-dasharray="0 534" stroke-linecap="round" transform="rotate(135 100 100)" class="gauge-arc-glow" opacity="0.15"/>
+                    </svg>
+                    <div class="gauge-value-display">
+                        <span id="speed-value" class="gauge-value">0.00</span>
+                        <span class="gauge-unit">m/s</span>
+                    </div>
+                </div>
+                <div class="gauge-range">
+                    <span>0</span>
+                    <span>1.5</span>
+                    <span>3.0</span>
+                </div>
+            </section>
+
+            <section id="proximity-card" class="card gauge-card radar-card">
+                <div class="card-header">
+                    <span class="card-icon">📡</span>
+                    <h2>PROXIMITY RADAR</h2>
+                </div>
+                <div class="radar-container">
+                    <canvas id="radar-canvas" width="280" height="280"></canvas>
+                </div>
+                <div id="proximity-readout" class="proximity-readout">
+                    <span id="proximity-value" class="prox-value">---</span>
+                    <span class="prox-unit">cm</span>
+                </div>
+            </section>
+
+            <section id="compass-card" class="card gauge-card">
+                <div class="card-header">
+                    <span class="card-icon">🧭</span>
+                    <h2>HEADING</h2>
+                </div>
+                <div class="compass-container">
+                    <svg id="compass-svg" viewBox="0 0 220 220" class="compass-svg">
+                        <!-- Outer ring -->
+                        <circle cx="110" cy="110" r="100" fill="none" stroke="var(--border-glow)" stroke-width="1"/>
+                        <circle cx="110" cy="110" r="95" fill="none" stroke="var(--border-subtle)" stroke-width="0.5"/>
+                        <!-- Degree marks -->
+                        <g id="compass-marks"></g>
+                        <!-- Cardinal labels -->
+                        <text x="110" y="28" class="compass-cardinal cardinal-n">N</text>
+                        <text x="110" y="202" class="compass-cardinal cardinal-s">S</text>
+                        <text x="198" y="115" class="compass-cardinal cardinal-e">E</text>
+                        <text x="22" y="115" class="compass-cardinal cardinal-w">W</text>
+                        <!-- Inner circles -->
+                        <circle cx="110" cy="110" r="60" fill="none" stroke="var(--border-subtle)" stroke-width="0.5"/>
+                        <circle cx="110" cy="110" r="30" fill="none" stroke="var(--border-subtle)" stroke-width="0.5"/>
+                        <!-- Needle -->
+                        <g id="compass-needle" class="compass-needle-group">
+                            <polygon points="110,30 104,110 116,110" fill="var(--accent-cyan)" opacity="0.9"/>
+                            <polygon points="110,190 104,110 116,110" fill="var(--accent-red)" opacity="0.4"/>
+                            <circle cx="110" cy="110" r="6" fill="var(--accent-cyan)"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="compass-readout">
+                    <span id="heading-value" class="heading-value">0.0</span>
+                    <span class="heading-unit">°</span>
+                </div>
+            </section>
+
+            <!-- ── ROW 2: Chart + Anomaly Log ── -->
+            <section id="chart-card" class="card chart-card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <h2>TELEMETRY STREAM</h2>
+                    <div class="chart-toggles">
+                        <button id="toggle-speed" class="chart-toggle active" data-dataset="speed">
+                            <span class="toggle-dot" style="background: var(--accent-cyan)"></span> Speed
+                        </button>
+                        <button id="toggle-proximity" class="chart-toggle active" data-dataset="proximity">
+                            <span class="toggle-dot" style="background: var(--accent-green)"></span> Proximity
+                        </button>
+                        <button id="toggle-direction" class="chart-toggle active" data-dataset="direction">
+                            <span class="toggle-dot" style="background: var(--accent-purple)"></span> Direction
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="telemetry-chart"></canvas>
+                </div>
+            </section>
+
+            <section id="anomaly-card" class="card anomaly-card">
+                <div class="card-header">
+                    <span class="card-icon">🚨</span>
+                    <h2>ANOMALY LOG</h2>
+                    <span id="anomaly-badge" class="anomaly-badge">0</span>
+                </div>
+                <div id="anomaly-log" class="anomaly-log">
+                    <div class="anomaly-empty">
+                        <span class="empty-icon">✓</span>
+                        <span>No anomalies detected</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── ROW 3: Path Planning Visualization ── -->
+            <section id="pathviz-card" class="card pathviz-card">
+                <div class="card-header">
+                    <span class="card-icon">🗺️</span>
+                    <h2>PATH VISUALIZATION</h2>
+                    <div class="pathviz-controls">
+                        <span id="robot-pos-display" class="robot-pos">X: 500 Y: 500</span>
+                    </div>
+                </div>
+                <div class="pathviz-container">
+                    <canvas id="pathviz-canvas"></canvas>
+                </div>
+            </section>
+        </main>
+
+        <!-- ═══ FOOTER ═══ -->
+        <footer class="footer">
+            <span>NEXUS Robot Command Center v1.0</span>
+            <span>•</span>
+            <span>FastAPI + IsolationForest + WebSocket</span>
+            <span>•</span>
+            <span id="timestamp-display">--</span>
+        </footer>
+    </div>
+
+    <!-- Application Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

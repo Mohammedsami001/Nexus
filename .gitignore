@@ -1,0 +1,36 @@
+# ── Environment ──────────────────────────────
+.env
+
+# ── Python ───────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# ── ML Model (generated at runtime) ─────────
+backend/ml/model.pkl
+
+# ── IDE ──────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Docker ───────────────────────────────────
+docker-compose.override.yml
+
+# ── Misc ─────────────────────────────────────
+*.log
+.pytest_cache/
