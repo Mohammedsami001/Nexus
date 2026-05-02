@@ -72,6 +72,29 @@ sequenceDiagram
 
 ---
 
+## 🧪 End-to-End Testing Guide
+
+To verify that the NEXUS system is processing real-time telemetry correctly, follow this synchronization test:
+
+### 1. Initialize the Command Center
+Open the **[NEXUS Dashboard](https://nexus-dashboard-1006160179252.us-central1.run.app)**.
+- Observe the **SIMULATOR** status in the header.
+- Automated data is streaming into the gauges and charts.
+- Wait for **ML WARMUP** to reach 100% (200 readings) to enable active anomaly detection.
+
+### 2. Launch the Interactive Sandbox
+Open the **[Interactive Game](https://nexus-dashboard-1006160179252.us-central1.run.app/game/)** in a separate window or side-by-side tab.
+- Press **W, A, S, D** to take control.
+- **Backend Sync**: Notice the Dashboard immediately switches to **GAME (1.0 Hz)** mode, and the automated simulator pauses to give you full control.
+
+### 3. Verification Checklist
+- **Heading Sync**: Rotate the robot in the game and watch the **Dashboard Compass** spin in real-time.
+- **Speed Precision**: Accelerate to 3.0 m/s and verify the **Speed Gauge** reflects the exact velocity.
+- **Anomaly Trigger**: Drive erratically or perform sudden "jerky" movements to trigger a **GAME ANOMALY** alert on the dashboard.
+- **Path Audit**: Watch the **Path Visualization** canvas draw your manual trajectory in real-time.
+
+---
+
 ## 🧠 Machine Learning Deep Dive
 
 ### Algorithm: Isolation Forest
