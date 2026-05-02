@@ -1,38 +1,56 @@
 class TelemetryClient {
-    constructor(url = 'ws://localhost:8000/ws/game-input') {
+    constructor(url) {
+        // Dynamically build the WebSocket URL from the current page location
+        if (!url) {
+            const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+            url = `${protocol}://${location.host}/ws/game-input`;
+        }
         this.url = url;
         this.ws = null;
         this.connected = false;
         this.tickCount = 0;
-        
+        this.sendCount = 0;
+        this.errorCount = 0;
+
         this.statusDot = document.getElementById('ws-status-dot');
         this.statusText = document.getElementById('ws-status-text');
         
+        // Show the resolved URL in the HUD
+        const wsUrlDisplay = document.getElementById('ws-url');
+        if (wsUrlDisplay) wsUrlDisplay.textContent = this.url;
+
+        console.log('[Telemetry] Initializing — target:', this.url);
         this.connect();
     }
 
     connect() {
         try {
+            console.log('[Telemetry] Connecting to', this.url);
             this.ws = new WebSocket(this.url);
-            
+
             this.ws.onopen = () => {
                 this.connected = true;
+                this.errorCount = 0;
                 this.updateUI(true);
+                console.log('[Telemetry] ✅ Connected to backend!');
             };
-            
-            this.ws.onclose = () => {
+
+            this.ws.onclose = (event) => {
                 this.connected = false;
                 this.updateUI(false);
+                console.warn('[Telemetry] ❌ Connection closed. Code:', event.code, 'Reason:', event.reason);
                 setTimeout(() => this.connect(), 2000); // Reconnect attempt
             };
 
             this.ws.onerror = (err) => {
-                console.error('WebSocket Error:', err);
-                this.ws.close();
+                this.errorCount++;
+                console.error('[Telemetry] WebSocket Error #' + this.errorCount, err);
+                // Don't call close() here — onclose will fire automatically
             };
         } catch (e) {
-            console.error('Failed to create WebSocket:', e);
+            console.error('[Telemetry] Failed to create WebSocket:', e);
             this.updateUI(false);
+            setTimeout(() => this.connect(), 3000);
         }
     }
 
@@ -42,15 +60,18 @@ class TelemetryClient {
             this.statusText.textContent = 'LIVE';
         } else {
             this.statusDot.className = 'status-dot disconnected';
-            this.statusText.textContent = 'CONNECTING...';
+            this.statusText.textContent = 'RECONNECTING...';
         }
     }
 
     sendReading(robotState, proximity) {
-        if (!this.connected) return;
-        
+        // Guard: check actual WebSocket readyState, not just the flag
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+            return;
+        }
+
         this.tickCount++;
-        
+
         const payload = {
             timestamp: new Date().toISOString(),
             proximity_cm: proximity,
@@ -64,6 +85,16 @@ class TelemetryClient {
             anomaly_injected: false
         };
 
-        this.ws.send(JSON.stringify(payload));
+        try {
+            this.ws.send(JSON.stringify(payload));
+            this.sendCount++;
+
+            // Log every 5th send so we can verify data is flowing
+            if (this.sendCount % 5 === 1) {
+                console.log(`[Telemetry] 📡 Sent tick #${this.tickCount} | speed=${payload.speed_mps.toFixed(2)} | prox=${payload.proximity_cm.toFixed(1)} | heading=${payload.direction_deg.toFixed(1)}`);
+            }
+        } catch (e) {
+            console.error('[Telemetry] Send failed:', e);
+        }
     }
 }

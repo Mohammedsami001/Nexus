@@ -29,7 +29,12 @@ function init() {
     world = new World(2000, 2000);
     robot = new Robot(1000, 1000); // Center of world
     controls = new Controls();
-    telemetry = new TelemetryClient('ws://localhost:8000/ws/game-input');
+
+    // Use dynamic URL — no hardcoded localhost
+    telemetry = new TelemetryClient();
+
+    console.log('[Engine] Game initialized. World: 2000x2000, Robot at center.');
+    console.log('[Engine] Use WASD to drive. Telemetry sends every 1s.');
 
     // Start Loop
     requestAnimationFrame(gameLoop);
@@ -63,11 +68,11 @@ function updateCamera() {
     // Lerp camera to robot position
     const targetCamX = robot.x - canvas.width / 2;
     const targetCamY = robot.y - canvas.height / 2;
-    
+
     // Smooth follow
     cameraX += (targetCamX - cameraX) * 0.1;
     cameraY += (targetCamY - cameraY) * 0.1;
-    
+
     // Clamp to world bounds
     cameraX = Math.max(0, Math.min(cameraX, world.width - canvas.width));
     cameraY = Math.max(0, Math.min(cameraY, world.height - canvas.height));
@@ -85,7 +90,7 @@ function gameLoop(timestamp) {
 
     // 1. Update Physics & Logic
     robot.update(controls, world);
-    
+
     // 2. Read Sensors
     const proximity = getProximity(robot, world.obstacles);
 

@@ -198,11 +198,13 @@ async def websocket_endpoint(websocket: WebSocket):
 async def game_input_endpoint(websocket: WebSocket):
     """Receive telemetry from the browser game client."""
     await websocket.accept()
-    logger.info("Game client connected for telemetry input")
+    logger.info("══ GAME CLIENT CONNECTED ══ │ dashboard_clients=%d", ws_manager.client_count)
+    game_tick = 0
     try:
         while True:
             data = await websocket.receive_json()
-            
+            game_tick += 1
+
             # Format matches existing simulator output
             reading = {
                 "timestamp": data["timestamp"],
@@ -215,6 +217,7 @@ async def game_input_endpoint(websocket: WebSocket):
                 "pos_y": data.get("pos_y", 500),
                 "tick": data.get("tick", 0),
                 "anomaly_injected": False,
+                "source": "game",
             }
 
             # Run through existing ML pipeline
@@ -227,20 +230,33 @@ async def game_input_endpoint(websocket: WebSocket):
             if is_anomaly:
                 buffer.add_anomaly(reading)
                 logger.warning(
-                    "GAME ANOMALY DETECTED │ tick=%d │ score=%.4f │ prox=%.1f",
+                    "GAME ANOMALY │ tick=%d │ score=%.4f │ prox=%.1f │ speed=%.2f",
                     reading["tick"],
                     anomaly_score,
                     reading["proximity_cm"],
+                    reading["speed_mps"],
                 )
 
             # Broadcast to all NEXUS dashboard clients
             ws_data = {**reading, "type": "anomaly" if is_anomaly else "telemetry"}
             await ws_manager.broadcast(ws_data)
 
+            # Log every 5th game tick to verify data flow
+            if game_tick % 5 == 1:
+                logger.info(
+                    "GAME TICK %d │ speed=%.2f │ prox=%.1f │ dir=%.1f │ ws_clients=%d",
+                    game_tick,
+                    reading["speed_mps"],
+                    reading["proximity_cm"],
+                    reading["direction_deg"],
+                    ws_manager.client_count,
+                )
+
     except WebSocketDisconnect:
-        logger.info("Game client disconnected")
+        logger.info("══ GAME CLIENT DISCONNECTED ══ │ ticks_received=%d", game_tick)
     except Exception as e:
-        logger.error(f"Error in game_input websocket: {e}")
+        import traceback
+        logger.error("Error in game_input websocket: %s\n%s", e, traceback.format_exc())
 
 
 # ── Static Frontend Serving (D5) ─────────────────────────────────────
