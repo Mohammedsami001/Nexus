@@ -117,6 +117,23 @@ NEXUS broadcasts a unified JSON frame to all connected command centers every sec
 
 ---
 
+## 🛠️ Technical Deep-Dive
+
+### 1. Robot Kinematics & Path Planning
+The simulation employs a **Non-Holonomic Mobile Robot Model**. 
+- **State Estimation**: The robot's position $(x, y)$ and orientation $\theta$ are updated using Euler integration:
+  - $x_{t+1} = x_t + v_t \cdot \cos(\theta_t) \cdot \Delta t$
+  - $y_{t+1} = y_t + v_t \cdot \sin(\theta_t) \cdot \Delta t$
+  - $\theta_{t+1} = \theta_t + \omega_t \cdot \Delta t$
+- **Path Visualization**: The frontend canvas renders a historical trail of the last 100 coordinates, calculating a **Look-Ahead Vector** to indicate the robot's predicted trajectory based on current velocity and heading.
+
+### 2. High-Concurrency Data Pipeline
+NEXUS is designed for high-throughput sensor telemetry using a non-blocking architecture.
+- **In-Memory Buffer**: Implements a thread-safe `collections.deque` with a fixed length of 1000. This ensures $O(1)$ access to historical data for ML re-training without the latency overhead of a traditional database.
+- **WebSocket Broadcasting**: The `ConnectionManager` utilizes a fan-out pattern. Each connected dashboard client has its own dedicated `asyncio.Queue`, preventing a single slow consumer from blocking the entire telemetry stream.
+
+---
+
 ## 🚀 Quick Start & Deployment
 
 ### 🐳 Local Orchestration (Docker)
