@@ -13,6 +13,7 @@ import os
 import time
 import asyncio
 import logging
+import traceback
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -70,12 +71,16 @@ anomaly_detector = AnomalyDetector(warmup_readings=WARMUP_READINGS)
 
 START_TIME = time.time()
 
+# Game mode flag: when True, the automated simulator pauses
+game_client_connected = False
+
 
 # ── Background Simulator Task ────────────────────────────────────────
 async def simulator_loop():
     """
     Continuously generates sensor readings, runs ML inference,
     stores in buffer, and broadcasts via WebSocket.
+    Pauses automatically when a game client is connected.
     """
     logger.info(
         "Simulator started │ tick_rate=%.1f Hz │ anomaly_prob=%.2f",
@@ -84,6 +89,11 @@ async def simulator_loop():
     )
 
     while True:
+        # Skip generating data while the game client is driving
+        if game_client_connected:
+            await asyncio.sleep(0.5)
+            continue
+
         # Generate reading
         reading = simulator.generate_reading()
 
@@ -115,7 +125,7 @@ async def simulator_loop():
         if reading["tick"] % 50 == 0:
             ml_status = anomaly_detector.status
             logger.info(
-                "TICK %d │ buffer=%d │ clients=%d │ ml_trained=%s │ warmup=%d/%d",
+                "SIM TICK %d │ buffer=%d │ clients=%d │ ml=%s │ warmup=%d/%d",
                 reading["tick"],
                 buffer.count,
                 ws_manager.client_count,
@@ -148,6 +158,7 @@ async def health_check():
         "readings_count": buffer.count,
         "ws_clients": ws_manager.client_count,
         "ml_status": anomaly_detector.status,
+        "mode": "game" if game_client_connected else "simulator",
     }
 
 
@@ -172,13 +183,13 @@ async def get_anomalies():
     return buffer.get_anomalies()
 
 
-# ── WebSocket Endpoint ───────────────────────────────────────────────
+# ── WebSocket Endpoint (Dashboard consumers) ────────────────────────
 
 @app.websocket("/ws/telemetry")
 async def websocket_endpoint(websocket: WebSocket):
     """B3: Real-time telemetry stream via WebSocket."""
     await ws_manager.connect(websocket)
-    logger.info("WebSocket client connected │ total=%d", ws_manager.client_count)
+    logger.info("Dashboard WS connected │ total=%d", ws_manager.client_count)
 
     # Run send loop (queue → client) concurrently with receive loop (keepalive)
     send_task = asyncio.create_task(ws_manager.send_loop(websocket))
@@ -191,14 +202,23 @@ async def websocket_endpoint(websocket: WebSocket):
     finally:
         send_task.cancel()
         ws_manager.disconnect(websocket)
-        logger.info("WebSocket client disconnected │ total=%d", ws_manager.client_count)
+        logger.info("Dashboard WS disconnected │ total=%d", ws_manager.client_count)
 
+
+# ── WebSocket Endpoint (Game input) ──────────────────────────────────
 
 @app.websocket("/ws/game-input")
 async def game_input_endpoint(websocket: WebSocket):
     """Receive telemetry from the browser game client."""
+    global game_client_connected
+
     await websocket.accept()
-    logger.info("══ GAME CLIENT CONNECTED ══ │ dashboard_clients=%d", ws_manager.client_count)
+    game_client_connected = True
+    logger.info("══════════════════════════════════════════════════")
+    logger.info("  🎮 GAME CLIENT CONNECTED — Simulator PAUSED")
+    logger.info("  Dashboard clients: %d", ws_manager.client_count)
+    logger.info("══════════════════════════════════════════════════")
+
     game_tick = 0
     try:
         while True:
@@ -230,7 +250,7 @@ async def game_input_endpoint(websocket: WebSocket):
             if is_anomaly:
                 buffer.add_anomaly(reading)
                 logger.warning(
-                    "GAME ANOMALY │ tick=%d │ score=%.4f │ prox=%.1f │ speed=%.2f",
+                    "🎮 GAME ANOMALY │ tick=%d │ score=%.4f │ prox=%.1f │ speed=%.2f",
                     reading["tick"],
                     anomaly_score,
                     reading["proximity_cm"],
@@ -241,10 +261,10 @@ async def game_input_endpoint(websocket: WebSocket):
             ws_data = {**reading, "type": "anomaly" if is_anomaly else "telemetry"}
             await ws_manager.broadcast(ws_data)
 
-            # Log every 5th game tick to verify data flow
-            if game_tick % 5 == 1:
+            # Log every tick so we can verify data flow
+            if game_tick % 3 == 1:
                 logger.info(
-                    "GAME TICK %d │ speed=%.2f │ prox=%.1f │ dir=%.1f │ ws_clients=%d",
+                    "🎮 GAME #%d │ spd=%.2f │ prox=%.1f │ dir=%.1f │ clients=%d",
                     game_tick,
                     reading["speed_mps"],
                     reading["proximity_cm"],
@@ -253,10 +273,12 @@ async def game_input_endpoint(websocket: WebSocket):
                 )
 
     except WebSocketDisconnect:
-        logger.info("══ GAME CLIENT DISCONNECTED ══ │ ticks_received=%d", game_tick)
+        logger.info("══ GAME CLIENT DISCONNECTED ══ │ ticks=%d", game_tick)
     except Exception as e:
-        import traceback
-        logger.error("Error in game_input websocket: %s\n%s", e, traceback.format_exc())
+        logger.error("Game WS error: %s\n%s", e, traceback.format_exc())
+    finally:
+        game_client_connected = False
+        logger.info("  🔄 Simulator RESUMED — game disconnected")
 
 
 # ── Static Frontend Serving (D5) ─────────────────────────────────────

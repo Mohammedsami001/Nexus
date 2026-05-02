@@ -572,14 +572,23 @@ async function pollHealth() {
 function connectWS() {
     const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
     const wsUrl = `${protocol}://${location.host}/ws/telemetry`;
-    state.ws = new WebSocket(wsUrl);
+    console.log('[NEXUS] Connecting WebSocket to', wsUrl);
+
+    try {
+        state.ws = new WebSocket(wsUrl);
+    } catch (e) {
+        console.error('[NEXUS] WebSocket creation failed:', e);
+        setTimeout(connectWS, 2000);
+        return;
+    }
 
     state.ws.onopen = () => {
         state.connected = true;
         state.reconnectDelay = 1000;
         dom.connectionStatus.className = 'connection-status online';
-        dom.statusText = dom.connectionStatus.querySelector('.status-text');
-        dom.statusText.textContent = 'LIVE';
+        const statusText = dom.connectionStatus.querySelector('.status-text');
+        statusText.textContent = 'LIVE';
+        console.log('[NEXUS] ✅ WebSocket CONNECTED');
         // Send keepalive
         state.keepalive = setInterval(() => {
             if (state.ws && state.ws.readyState === WebSocket.OPEN) {
@@ -624,13 +633,17 @@ function connectWS() {
         dom.connectionStatus.className = 'connection-status offline';
         const statusText = dom.connectionStatus.querySelector('.status-text');
         statusText.textContent = 'OFFLINE';
+        console.warn('[NEXUS] ❌ WebSocket disconnected. Reconnecting in', state.reconnectDelay, 'ms');
 
-        // Reconnect with backoff
+        // Fast reconnect — max 3 second delay
         setTimeout(connectWS, state.reconnectDelay);
-        state.reconnectDelay = Math.min(state.reconnectDelay * 2, 30000);
+        state.reconnectDelay = Math.min(state.reconnectDelay * 1.5, 3000);
     };
 
-    state.ws.onerror = () => { state.ws.close(); };
+    state.ws.onerror = (err) => {
+        console.error('[NEXUS] WebSocket error:', err);
+        // onclose will fire automatically after onerror, don't call close() manually
+    };
 }
 
 // ── Initialize ───────────────────────────────────────────────
