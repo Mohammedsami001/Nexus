@@ -119,7 +119,7 @@ class AnomalyDetector:
         prediction = self.model.predict(X)[0]  # 1 = normal, -1 = anomaly
         score = self.model.decision_function(X)[0]  # More negative = more anomalous
 
-        is_anomaly = prediction == -1
+        is_anomaly = bool(prediction == -1)
 
         # Optional: Re-fit model periodically to adapt to new normal
         self.readings_since_train += 1

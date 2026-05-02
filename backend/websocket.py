@@ -56,7 +56,8 @@ class ConnectionManager:
             while True:
                 data = await queue.get()
                 await websocket.send_text(json.dumps(data))
-        except Exception:
+        except Exception as e:
+            logger.error(f"send_loop error: {e}")
             pass  # Connection closed; handled by the endpoint
 
     @property

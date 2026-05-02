@@ -45,6 +45,8 @@ const dom = {
     anomalyFlash: document.getElementById('anomaly-flash'),
     robotPosDisplay: document.getElementById('robot-pos-display'),
     timestampDisplay: document.getElementById('timestamp-display'),
+    tickrateDisplay: document.getElementById('tickrate-display'),
+    clientsDisplay: document.getElementById('clients-display'),
     app: document.getElementById('app')
 };
 
@@ -565,6 +567,12 @@ async function pollHealth() {
         const mm = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
         const ss = String(secs % 60).padStart(2, '0');
         dom.uptimeDisplay.textContent = `${hh}:${mm}:${ss}`;
+
+        // Clients and Mode
+        if (dom.clientsDisplay) dom.clientsDisplay.textContent = data.ws_clients;
+        if (dom.tickrateDisplay) {
+            dom.tickrateDisplay.textContent = (data.mode === 'game') ? 'GAME (1.0 Hz)' : 'SIMULATOR';
+        }
     } catch (e) { /* silent */ }
 }
 
