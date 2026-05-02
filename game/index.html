@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS - Robot Game Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div id="hud-container">
+        <!-- HUD Header -->
+        <header class="hud-header">
+            <div class="hud-title">
+                <h1><span class="icon">🎮</span> ROBOT CONTROL SIMULATION</h1>
+                <div class="status-indicator">
+                    <div id="ws-status-dot" class="status-dot disconnected"></div>
+                    <span id="ws-status-text">CONNECTING...</span>
+                </div>
+            </div>
+            <div class="hud-connection">
+                Nexus: <span id="ws-url">ws://localhost:8000/ws/game-input</span>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Left Data Panel -->
+            <aside class="data-panel left-panel">
+                <div class="data-box">
+                    <div class="data-label">SPEED</div>
+                    <div class="data-value"><span id="speed-val">0.00</span> <span class="unit">m/s</span></div>
+                </div>
+                <div class="data-box">
+                    <div class="data-label">HEADING</div>
+                    <div class="data-value"><span id="heading-val">0.0</span> <span class="unit">°</span></div>
+                </div>
+                <div class="data-box">
+                    <div class="data-label">PROXIMITY</div>
+                    <div class="data-value" id="prox-container"><span id="prox-val">500.0</span> <span class="unit">cm</span></div>
+                </div>
+                
+                <div class="controls-hint">
+                    <h3>CONTROLS</h3>
+                    <ul>
+                        <li><kbd>W</kbd> Accelerate</li>
+                        <li><kbd>S</kbd> Brake / Reverse</li>
+                        <li><kbd>A</kbd> <kbd>D</kbd> Turn</li>
+                        <li><kbd>SPACE</kbd> E-Brake</li>
+                        <li><kbd>R</kbd> Reset Pos</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Game Canvas Container -->
+            <section class="canvas-container">
+                <canvas id="gameCanvas"></canvas>
+                <div id="scanline"></div>
+                <div id="start-overlay" class="overlay">
+                    <h2>READY FOR DEPLOYMENT</h2>
+                    <p>Press any control key to begin</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="telemetry.js"></script>
+    <script src="sensors.js"></script>
+    <script src="controls.js"></script>
+    <script src="world.js"></script>
+    <script src="robot.js"></script>
+    <script src="engine.js"></script>
+</body>
+</html>

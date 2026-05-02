@@ -1,0 +1,258 @@
+:root {
+    --bg-primary: #04060b;
+    --accent-cyan: #00d4ff;
+    --accent-red: #ff2d55;
+    --accent-green: #00ff88;
+    --text-main: rgba(255, 255, 255, 0.9);
+    --text-dim: rgba(255, 255, 255, 0.5);
+    --panel-bg: rgba(4, 6, 11, 0.85);
+    --panel-border: rgba(0, 212, 255, 0.2);
+    
+    --font-headers: 'Orbitron', sans-serif;
+    --font-data: 'JetBrains Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+    font-family: var(--font-data);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 60%),
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 50px 50px, 50px 50px;
+}
+
+#hud-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 20px;
+    position: relative;
+    z-index: 10;
+    pointer-events: none; /* Let clicks pass through to canvas */
+}
+
+/* Header */
+.hud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.hud-title {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.hud-title h1 {
+    font-family: var(--font-headers);
+    font-size: 1.5rem;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    letter-spacing: 2px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 4px 10px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--panel-border);
+    border-radius: 4px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.connected {
+    background-color: var(--accent-green);
+    box-shadow: 0 0 8px var(--accent-green);
+}
+
+.status-dot.disconnected {
+    background-color: var(--accent-red);
+    box-shadow: 0 0 8px var(--accent-red);
+}
+
+.hud-connection {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+#ws-url {
+    color: var(--accent-cyan);
+}
+
+/* Main Content */
+.main-content {
+    display: flex;
+    flex: 1;
+    gap: 20px;
+    min-height: 0;
+}
+
+/* Side Panels */
+.data-panel {
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.data-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    padding: 15px;
+    border-radius: 4px;
+    backdrop-filter: blur(5px);
+    box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.05);
+}
+
+.data-label {
+    font-family: var(--font-headers);
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.data-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.data-value .unit {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+
+.data-value.danger {
+    color: var(--accent-red);
+    text-shadow: 0 0 10px rgba(255, 45, 85, 0.5);
+}
+
+.controls-hint {
+    margin-top: auto;
+    background: var(--panel-bg);
+    border: 1px dashed var(--panel-border);
+    padding: 15px;
+    font-size: 0.8rem;
+}
+
+.controls-hint h3 {
+    font-family: var(--font-headers);
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+}
+
+.controls-hint ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.controls-hint kbd {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-family: inherit;
+    color: var(--accent-cyan);
+}
+
+/* Canvas Area */
+.canvas-container {
+    flex: 1;
+    position: relative;
+    border: 1px solid var(--panel-border);
+    background-color: #020305;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.1);
+    pointer-events: auto; /* Catch inputs here */
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Scanline Effect */
+#scanline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: linear-gradient(to bottom, transparent, rgba(0, 212, 255, 0.2), transparent);
+    opacity: 0.5;
+    animation: scan 4s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes scan {
+    0% { top: -10px; }
+    100% { top: 100%; }
+}
+
+.overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(4, 6, 11, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    transition: opacity 0.3s;
+}
+
+.overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay h2 {
+    font-family: var(--font-headers);
+    color: var(--accent-cyan);
+    font-size: 2rem;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+.overlay p {
+    color: var(--text-main);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}

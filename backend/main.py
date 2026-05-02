@@ -194,10 +194,64 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info("WebSocket client disconnected │ total=%d", ws_manager.client_count)
 
 
+@app.websocket("/ws/game-input")
+async def game_input_endpoint(websocket: WebSocket):
+    """Receive telemetry from the browser game client."""
+    await websocket.accept()
+    logger.info("Game client connected for telemetry input")
+    try:
+        while True:
+            data = await websocket.receive_json()
+            
+            # Format matches existing simulator output
+            reading = {
+                "timestamp": data["timestamp"],
+                "proximity_cm": data["proximity_cm"],
+                "speed_mps": data["speed_mps"],
+                "direction_deg": data["direction_deg"],
+                "speed_delta": data.get("speed_delta", 0),
+                "direction_delta": data.get("direction_delta", 0),
+                "pos_x": data.get("pos_x", 500),
+                "pos_y": data.get("pos_y", 500),
+                "tick": data.get("tick", 0),
+                "anomaly_injected": False,
+            }
+
+            # Run through existing ML pipeline
+            is_anomaly, anomaly_score = anomaly_detector.predict(reading)
+            reading["is_anomaly"] = is_anomaly
+            reading["anomaly_score"] = anomaly_score
+
+            # Store in buffer
+            buffer.add_reading(reading)
+            if is_anomaly:
+                buffer.add_anomaly(reading)
+                logger.warning(
+                    "GAME ANOMALY DETECTED │ tick=%d │ score=%.4f │ prox=%.1f",
+                    reading["tick"],
+                    anomaly_score,
+                    reading["proximity_cm"],
+                )
+
+            # Broadcast to all NEXUS dashboard clients
+            ws_data = {**reading, "type": "anomaly" if is_anomaly else "telemetry"}
+            await ws_manager.broadcast(ws_data)
+
+    except WebSocketDisconnect:
+        logger.info("Game client disconnected")
+    except Exception as e:
+        logger.error(f"Error in game_input websocket: {e}")
+
+
 # ── Static Frontend Serving (D5) ─────────────────────────────────────
 # Serve frontend files at root. This must be AFTER API routes.
 
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+game_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "game")
+
+if os.path.isdir(game_dir):
+    # html=True allows serving index.html on /game/
+    app.mount("/game", StaticFiles(directory=game_dir, html=True), name="game")
 
 if os.path.isdir(frontend_dir):
     @app.get("/")
