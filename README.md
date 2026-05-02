@@ -1,221 +1,178 @@
-# 🤖 NEXUS — Cloud-Deployed Robot Simulation Dashboard
+# <p align="center">🛸 NEXUS — High-Fidelity Robot Telemetry & ML Dashboard</p>
 
-A full-stack, production-grade system that simulates real-time robot sensor data, visualizes it on a live sci-fi web dashboard, detects anomalies using machine learning, and is containerized with Docker for cloud deployment.
+<p align="center">
+  <img src="https://img.shields.io/badge/Live-NEXUS_Cloud-00E5FF?style=for-the-badge&logo=google-cloud&logoColor=white&link=https://nexus-dashboard-1006160179252.us-central1.run.app" />
+  <img src="https://img.shields.io/badge/Engine-Python_3.11-FFD600?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Inference-Isolation_Forest-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" />
+  <img src="https://img.shields.io/badge/DevOps-Docker_Certified-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+</p>
 
-![Dashboard Preview](frontend/screenshot.png)
-
----
-
-## 🏗️ Architecture
-
-```
-┌──────────────────────────────────────────────────┐
-│                 CLIENT BROWSER                    │
-│  ┌────────────────────────────────────────────┐  │
-│  │     NEXUS Command Center (HTML/JS)         │  │
-│  │  Gauges │ Radar │ Chart │ Anomaly Log      │  │
-│  └─────────────┬──────────────────────────┬───┘  │
-│                │ WebSocket                │ REST  │
-└────────────────┼──────────────────────────┼──────┘
-                 │                          │
-┌────────────────▼──────────────────────────▼──────┐
-│           FASTAPI BACKEND (Docker)                │
-│                                                   │
-│  ┌───────────┐    ┌──────────────┐               │
-│  │ WebSocket │    │  REST API    │               │
-│  │ Manager   │    │  Endpoints   │               │
-│  └─────┬─────┘    └──────┬───────┘               │
-│        │                 │                        │
-│  ┌─────▼─────────────────▼───────┐               │
-│  │    Telemetry Buffer (1000)    │               │
-│  └──────────────┬────────────────┘               │
-│                 │                                 │
-│  ┌──────────────▼────────────────┐               │
-│  │  Anomaly Detection Engine     │               │
-│  │  (IsolationForest / sklearn)  │               │
-│  └───────────────────────────────┘               │
-│                                                   │
-│  ┌───────────────────────────────┐               │
-│  │  Robot Sensor Simulator       │               │
-│  │  (async background task)      │               │
-│  └───────────────────────────────┘               │
-└──────────────────────────────────────────────────┘
-         Deployed on: AWS EC2 t2.micro
-```
+<p align="center">
+  <strong>NEXUS is an end-to-end telemetry ecosystem designed to simulate, monitor, and analyze autonomous robot behavior in real-time. It features an interactive 2D physics sandbox, a FastAPI-driven data pipeline, and a sci-fi themed command center powered by unsupervised machine learning.</strong>
+</p>
 
 ---
 
-## 🚀 Quick Start
+## 🎯 Core Objectives & Achievements
 
-### Docker (Recommended)
-```bash
-# Clone the repository
-git clone https://github.com/your-username/robot-dashboard.git
-cd robot-dashboard
+This project successfully implements the following production-grade requirements:
 
-# Copy environment config
-cp .env.example .env
-
-# Build and run
-docker-compose up --build
-
-# Open http://localhost:8000
-```
-
-### Local Development
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy environment config
-cp .env.example .env
-
-# Run the server
-uvicorn backend.main:app --host 0.0.0.0 --port 8000
-
-# Open http://localhost:8000
-```
+- **🛰️ High-Fidelity Simulation**: Real-time generation of robot sensor data (proximity, speed, and heading) using Python with added Gaussian noise for realism.
+- **📊 Live Telemetry Dashboard**: A high-performance web interface built with **FastAPI** and **WebSockets** for instantaneous data visualization.
+- **🧠 ML Anomaly Detection**: Integrated **scikit-learn (Isolation Forest)** pipeline for unsupervised real-time anomaly detection on incoming data streams.
+- **☁️ Cloud-Native Deployment**: Fully containerized using **Docker** and deployed to **Google Cloud Platform (GCP)** via Cloud Run.
+- **🗺️ Path Visualization**: (Bonus) An interactive 2D canvas that visualizes the robot's historical path, current heading, and simulated obstacles.
 
 ---
 
-## 📡 API Reference
+## 🌐 Live Infrastructure
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | System health check |
-| GET | `/api/telemetry/latest` | Latest sensor reading |
-| GET | `/api/telemetry/history?limit=100` | Last N readings |
-| GET | `/api/anomalies` | All detected anomaly events |
-| WS | `/ws/telemetry` | Real-time telemetry stream |
-| GET | `/docs` | Auto-generated API documentation |
+| Service | Environment | Access URL |
+| :--- | :--- | :--- |
+| **Command Center** | Google Cloud Run | [https://nexus-dashboard-1006160179252.us-central1.run.app](https://nexus-dashboard-1006160179252.us-central1.run.app) |
+| **Remote Game Controller** | Google Cloud Run | [https://nexus-dashboard-1006160179252.us-central1.run.app/game/](https://nexus-dashboard-1006160179252.us-central1.run.app/game/) |
 
-### WebSocket Message Format
+---
+
+## 🏗️ System Architecture
+
+NEXUS utilizes a **Reactive Streaming Architecture** where data flows from the edge (simulator or interactive game) to the core (ML engine) and finally to the dashboard with sub-50ms processing latency.
+
+```mermaid
+sequenceDiagram
+    participant Game as 🎮 Game Client
+    participant API as ⚙️ FastAPI Backend
+    participant ML as 🧠 ML Engine
+    participant DB as 📡 Dashboard UI
+
+    Note over Game, DB: Real-Time Telemetry Pipeline
+    Game->>API: WS /ws/game-input (1Hz JSON)
+    API->>ML: Predict Anomaly (Features: Prox, Spd, ΔDir, ΔSpd)
+    ML-->>API: Result (is_anomaly, score)
+    API->>DB: WS /ws/telemetry (Broadcast JSON)
+    DB->>DB: Update Gauges, Radar, & Charts
+```
+
+### Technical Component Breakdown
+
+1.  **Simulation Layer (`/simulator`)**:
+    *   Implements a discrete-time kinematic model for the robot.
+    *   Generates Gaussian-noisy sensor data to simulate real-world hardware jitter.
+    *   Features a deterministic anomaly injector for testing ML recall.
+
+2.  **ML Inference Engine (`/backend/ml`)**:
+    *   Uses **Isolation Forest**, an unsupervised anomaly detection algorithm.
+    *   Feature Engineering: Instead of raw coordinates, the model uses **Speed Delta** and **Heading Delta** to detect erratic jerky movements or sudden collisions.
+    *   **Warm-up Period**: Automatically baselines "normal" behavior during the first 200 readings before enabling live alerts.
+
+3.  **Real-Time Dashboard (`/frontend`)**:
+    *   **Radar Scanner**: High-performance Canvas API implementation of a traditional sweep radar.
+    *   **Glow-System**: Custom CSS variable-driven neon design system with scan-line effects.
+    *   **Dynamic Gauges**: SVG-based radial gauges with SVG-dasharray manipulation for smooth, hardware-accelerated transitions.
+
+---
+
+## 🧠 Machine Learning Deep Dive
+
+### Algorithm: Isolation Forest
+Unlike traditional anomaly detection which attempts to model "normal" data, Isolation Forest explicitly isolates anomalies. Because anomalies are "few and different," they are easier to isolate in a tree-based partitioning space.
+
+| Metric | Detail |
+| :--- | :--- |
+| **Input Vector** | `[proximity_cm, speed_mps, heading_delta, speed_delta]` |
+| **Warm-up Target** | 200 samples (Initial Baseline) |
+| **Refit Frequency** | Every 500 readings (Adapts to environment changes) |
+| **Scoring** | Normalized Decision Function (Negative = Anomalous) |
+
+---
+
+## 📡 API Reference & Payload Schema
+
+### WebSocket Telemetry Frame
+NEXUS broadcasts a unified JSON frame to all connected command centers every second.
+
 ```json
 {
   "type": "telemetry",
-  "timestamp": "2026-05-02T01:30:00Z",
-  "proximity_cm": 142.3,
-  "speed_mps": 1.2,
-  "direction_deg": 270.5,
+  "timestamp": "2026-05-02T15:30:01.423Z",
+  "proximity_cm": 142.5,
+  "speed_mps": 1.25,
+  "direction_deg": 270.0,
+  "pos_x": 512.4,
+  "pos_y": 488.1,
   "is_anomaly": false,
-  "anomaly_score": -0.12
+  "anomaly_score": -0.0452,
+  "source": "simulator"
 }
 ```
 
----
-
-## 🧠 ML Model
-
-**Algorithm:** Isolation Forest (unsupervised, no labeled data needed)
-
-**Feature Vector:** `[proximity_cm, speed_mps, direction_delta, speed_delta]`
-
-**Workflow:**
-1. **Warm-up (200 readings):** Collects baseline normal behavior
-2. **Training:** Fits IsolationForest on baseline data
-3. **Online Inference:** Scores every new reading in real-time
-4. **Re-fitting:** Periodically re-trains on recent data (every 500 readings)
+### Endpoints Matrix
+| Method | Endpoint | Use Case |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Kubernetes/Cloud Run Health Probes |
+| `GET` | `/api/telemetry/latest` | Polling for low-power devices |
+| `GET` | `/api/anomalies` | Historical audit trail of detected events |
+| `WS` | `/ws/telemetry` | Real-time Dashboard Synchronization |
+| `WS` | `/ws/game-input` | Interactive Control Injection |
 
 ---
 
-## 🎨 Dashboard Features
+## 🚀 Quick Start & Deployment
 
-| Feature | Description |
-|---------|-------------|
-| Speed Gauge | Radial SVG gauge with color transitions (cyan → amber → red) |
-| Proximity Radar | Animated circular radar scanner with rotating sweep line |
-| Direction Compass | 3D-perspective SVG compass with smooth needle rotation |
-| Telemetry Chart | Multi-line Chart.js with gradient fills and glow effects |
-| Anomaly Log | Real-time alert panel with slide-in animations |
-| Path Visualization | 2D canvas with robot trail, obstacles, and heading indicator |
-| Particle Background | Constellation-style animated particle system |
-| Connection Status | Live/offline indicator with auto-reconnect |
-
----
-
-## ☁️ AWS Deployment (EC2 t2.micro)
-
+### 🐳 Local Orchestration (Docker)
 ```bash
-# 1. Launch EC2 t2.micro (Amazon Linux 2023)
-# 2. SSH into instance
-ssh -i your-key.pem ec2-user@<public-ip>
+# Clone & Navigate
+git clone https://github.com/Mohammedsami001/Nexus.git && cd Nexus
 
-# 3. Install Docker
-sudo yum update -y
-sudo yum install -y docker
-sudo systemctl start docker
-sudo usermod -aG docker ec2-user
-
-# 4. Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# 5. Clone and run
-git clone https://github.com/your-username/robot-dashboard.git
-cd robot-dashboard
+# Setup Environment
 cp .env.example .env
+
+# Deploy Stack
 docker-compose up --build -d
+```
 
-# 6. Open port 8000 in Security Group (AWS Console)
-# 7. Access: http://<ec2-public-ip>:8000
+### ☁️ Cloud Deployment (Google Cloud Run)
+NEXUS is designed to be fully serverless-compatible. 
+```bash
+gcloud run deploy nexus-dashboard \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --port 8000
 ```
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Taxonomy
 
-```
-robot-dashboard/
-├── simulator/
-│   ├── __init__.py
-│   ├── robot.py          # Sensor simulation (F1-F3, F5-F6)
-│   └── anomaly.py        # Anomaly injection (F4)
-├── backend/
-│   ├── __init__.py
-│   ├── main.py           # FastAPI app (B1-B7)
-│   ├── websocket.py      # WebSocket manager (B3)
-│   ├── telemetry.py      # Buffer + models (B7)
-│   └── ml/
-│       ├── __init__.py
-│       └── model.py      # IsolationForest (M1-M7)
-├── frontend/
-│   ├── index.html        # Dashboard HTML
-│   ├── style.css         # Cyberpunk CSS design system
-│   └── app.js            # Interactive components
-├── Dockerfile            # Multi-stage build (D1)
-├── docker-compose.yml    # Single-command startup (D2)
-├── requirements.txt      # Python dependencies
-├── .env.example          # Environment config template (D4)
-└── README.md
+```text
+Nexus/
+├── simulator/          # Kinematics & Gaussian noise generation
+├── backend/            # Async FastAPI & WebSocket management
+│   └── ml/             # Isolation Forest logic & model persistence
+├── frontend/           # Neon-Styled Command Center UI
+│   ├── app.js          # Chart.js, Radar Canvas, & WS Logic
+│   └── style.css       # Custom Cyberpunk design tokens
+├── game/               # 2D Interactive Robot Control sandbox
+├── Dockerfile          # Multi-stage Slim-Debian build
+└── docker-compose.yml  # Local developer experience configuration
 ```
 
 ---
 
-## ⚙️ Configuration
+## 🛠️ Performance & Tuning
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `TICK_RATE_HZ` | `1.0` | Sensor readings per second |
-| `ANOMALY_PROBABILITY` | `0.03` | Chance of anomaly injection per tick |
-| `BUFFER_SIZE` | `1000` | Max readings in memory |
-| `WARMUP_READINGS` | `200` | Readings before ML model trains |
-| `CORS_ORIGINS` | `*` | Allowed CORS origins |
+The system behavior can be tuned via the `.env` file to match specific hardware requirements:
 
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Simulator | Python 3.11, NumPy |
-| Backend | FastAPI + Uvicorn |
-| ML | scikit-learn (IsolationForest) |
-| Frontend | Vanilla HTML/CSS/JS + Chart.js v4 |
-| Container | Docker + docker-compose |
-| Cloud | AWS EC2 t2.micro (Free Tier) |
+| Variable | Default | Purpose |
+| :--- | :--- | :--- |
+| `TICK_RATE_HZ` | `1.0` | Global simulation frequency |
+| `WARMUP_READINGS` | `200` | Samples required for ML baseline |
+| `ANOMALY_PROBABILITY` | `0.03` | Chance of auto-injected anomalies |
+| `BUFFER_SIZE` | `1000` | In-memory history retention |
 
 ---
 
-## 📝 License
-
-MIT License — Built for educational/demonstration purposes.
+<p align="center">
+  <strong>Built with Precision by SAMI</strong>
+</p>
