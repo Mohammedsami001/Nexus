@@ -226,6 +226,12 @@ pip install -r requirements.txt
 
 # Run the unified FastAPI server
 uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Access the NEXUS Dashboard
+localhost:8000/
+
+# Access the amazing game
+localhost:8000/game/
 ```
 
 ### 🐳 Local Orchestration (Docker)
