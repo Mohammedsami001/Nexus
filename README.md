@@ -25,6 +25,18 @@ This project successfully implements the following production-grade requirements
 
 ---
 
+## 🦾 Robotics Concepts Applied
+
+NEXUS serves as a practical implementation of several foundational academic and industrial robotics concepts:
+
+*   **Kinematics & Odometry**: Implements a **Non-Holonomic Drive Model**. The system estimates the robot's global position $(X, Y)$ and heading $(\theta)$ over time using Euler integration based on linear and angular velocity.
+*   **Sensor Raycasting**: Simulates physical hardware like LiDAR or Ultrasonic sensors by mathematically casting rays from the robot's origin against geometric obstacles to calculate proximity.
+*   **Noise Modeling**: Real hardware is never perfect. The simulation injects **Gaussian Noise (Jitter)** into the raw sensor streams to mimic the inaccuracies of physical environments.
+*   **Signal Processing**: Implements edge-level **Simple Moving Average (SMA)** filters to smooth out 1-tick hardware spikes and prevent false-positive anomaly detections.
+*   **Telemetry & IoT Architectures**: Demonstrates how to decouple physical edge devices (robots) from heavy cloud processing using asynchronous, high-frequency JSON payload streaming over WebSockets.
+
+---
+
 ## 🌐 Live Infrastructure (DISABLED FOR NOW, TRY THE LOCAL ORCHESTRATION)
 
 | Service | Environment | Access URL |
