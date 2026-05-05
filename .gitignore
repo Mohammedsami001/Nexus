@@ -34,3 +34,9 @@ docker-compose.override.yml
 # ── Misc ─────────────────────────────────────
 *.log
 .pytest_cache/
+
+# ── Old Plans & Docs ─────────────────────────
+aws_implementation_plan.md
+cloud_robot_dashboard_PRD.md
+robot_connection.md
+ROBOT_GAME_PLAN.md
