@@ -150,7 +150,7 @@ We pair this AI with a **Simple Moving Average (SMA) Pre-Processing Filter**. By
 
 | Metric | Detail |
 | :--- | :--- |
-| **Input Vector** | `[proximity_cm, speed_mps, heading_delta, speed_delta]` |
+| **Input Vector** | `[proximity_cm, speed_mps, direction_delta, speed_delta]` |
 | **Warm-up Target** | 20 to 200 samples (Dynamic Initial Baseline) |
 | **Refit Frequency** | Every 500 readings (Adapts to environment changes) |
 | **Scoring** | Normalized Decision Function (Negative = Anomalous) |
