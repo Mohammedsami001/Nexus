@@ -400,15 +400,20 @@ function addAnomalyEntry(reading) {
     void dom.anomalyCounter.offsetWidth;
     dom.anomalyCounter.classList.add('bounce');
 
-    // Flash overlay
-    dom.anomalyFlash.classList.remove('active');
-    void dom.anomalyFlash.offsetWidth;
-    dom.anomalyFlash.classList.add('active');
+    // ONLY trigger the intense red flash and shake if proximity is dangerously close
+    const isCritical = reading.proximity_cm < 50;
 
-    // Shake dashboard
-    dom.app.classList.remove('shake');
-    void dom.app.offsetWidth;
-    dom.app.classList.add('shake');
+    if (isCritical) {
+        // Flash overlay
+        dom.anomalyFlash.classList.remove('active');
+        void dom.anomalyFlash.offsetWidth;
+        dom.anomalyFlash.classList.add('active');
+
+        // Shake dashboard
+        dom.app.classList.remove('shake');
+        void dom.app.offsetWidth;
+        dom.app.classList.add('shake');
+    }
 
     // Remove empty message
     const empty = dom.anomalyLog.querySelector('.anomaly-empty');
@@ -416,7 +421,7 @@ function addAnomalyEntry(reading) {
 
     const t = new Date(reading.timestamp).toLocaleTimeString();
     const entry = document.createElement('div');
-    entry.className = 'anomaly-entry';
+    entry.className = isCritical ? 'anomaly-entry critical' : 'anomaly-entry warning';
     entry.innerHTML = `
         <div class="anomaly-entry-header">
             <span class="anomaly-time">⚠ ${t}</span>
