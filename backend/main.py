@@ -35,6 +35,7 @@ ANOMALY_PROBABILITY = float(os.getenv("ANOMALY_PROBABILITY", "0.03"))
 BUFFER_SIZE = int(os.getenv("BUFFER_SIZE", "1000"))
 WARMUP_READINGS = int(os.getenv("WARMUP_READINGS", "200"))
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+ROBOT_API_KEY = os.getenv("ROBOT_API_KEY", "nexus_secret_key_123")
 
 # ── Logging ───────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -208,8 +209,13 @@ async def websocket_endpoint(websocket: WebSocket):
 # ── WebSocket Endpoint (Game input) ──────────────────────────────────
 
 @app.websocket("/ws/game-input")
-async def game_input_endpoint(websocket: WebSocket):
+async def game_input_endpoint(websocket: WebSocket, token: str = Query(None)):
     """Receive telemetry from the browser game client."""
+    if token != ROBOT_API_KEY:
+        await websocket.close(code=1008, reason="Unauthorized")
+        logger.warning("Rejected unauthorized robot connection attempt (Invalid token)")
+        return
+
     global game_client_connected
 
     await websocket.accept()
