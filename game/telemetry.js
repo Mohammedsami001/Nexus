@@ -13,6 +13,7 @@ class TelemetryClient {
         this.tickCount = 0;
         this.sendCount = 0;
         this.errorCount = 0;
+        this.reconnectAttempts = 0;
 
         this.statusDot = document.getElementById('ws-status-dot');
         this.statusText = document.getElementById('ws-status-text');
@@ -33,6 +34,7 @@ class TelemetryClient {
             this.ws.onopen = () => {
                 this.connected = true;
                 this.errorCount = 0;
+                this.reconnectAttempts = 0; // Reset on successful connection
                 this.updateUI(true);
                 console.log('[Telemetry] ✅ Connected to backend!');
             };
@@ -40,8 +42,13 @@ class TelemetryClient {
             this.ws.onclose = (event) => {
                 this.connected = false;
                 this.updateUI(false);
-                console.warn('[Telemetry] ❌ Connection closed. Code:', event.code, 'Reason:', event.reason);
-                setTimeout(() => this.connect(), 2000); // Reconnect attempt
+                
+                // Exponential backoff: 1s * (1.5 ^ attempts), max 30 seconds
+                const delay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), 30000);
+                this.reconnectAttempts++;
+                
+                console.warn(`[Telemetry] ❌ Connection closed. Code: ${event.code}. Reconnecting in ${Math.round(delay/1000)}s...`);
+                setTimeout(() => this.connect(), delay);
             };
 
             this.ws.onerror = (err) => {
@@ -52,7 +59,10 @@ class TelemetryClient {
         } catch (e) {
             console.error('[Telemetry] Failed to create WebSocket:', e);
             this.updateUI(false);
-            setTimeout(() => this.connect(), 3000);
+            
+            const delay = Math.min(1000 * Math.pow(1.5, this.reconnectAttempts), 30000);
+            this.reconnectAttempts++;
+            setTimeout(() => this.connect(), delay);
         }
     }
 
