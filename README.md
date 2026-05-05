@@ -81,7 +81,7 @@ To verify that the NEXUS system is processing real-time telemetry correctly, fol
 Open the **[NEXUS Dashboard](https://nexus-dashboard-1006160179252.us-central1.run.app)**.
 - Observe the **SIMULATOR** status in the header.
 - Automated data is streaming into the gauges and charts.
-- Wait for **ML WARMUP** to reach 100% (200 readings) to enable active anomaly detection.
+- Wait for **ML WARMUP** to reach 100% (20 readings) to enable active anomaly detection.
 
 ### 2. Launch the Interactive Sandbox
 Open the **[Interactive Game](https://nexus-dashboard-1006160179252.us-central1.run.app/game/)** in a separate window or side-by-side tab.
