@@ -25,7 +25,7 @@ This project successfully implements the following production-grade requirements
 
 ---
 
-## 🌐 Live Infrastructure (DISABLED FOR NOW, TRY THE LOCAL SETUP)
+## 🌐 Live Infrastructure (DISABLED FOR NOW, TRY THE LOCAL ORCHESTRATION)
 
 | Service | Environment | Access URL |
 | :--- | :--- | :--- |
