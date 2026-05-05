@@ -37,7 +37,7 @@ NEXUS serves as a practical implementation of several foundational academic and 
 
 ---
 
-## 🌐 Live Infrastructure (DISABLED FOR NOW, TRY THE LOCAL ORCHESTRATION)
+## 🌐 Live Infrastructure (DISABLED FOR NOW, TRY THE LOCAL DEVELOPMENT)
 
 | Service | Environment | Access URL |
 | :--- | :--- | :--- |
