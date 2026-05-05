@@ -23,7 +23,7 @@ function castProximityRay(robot, obstacles, angle, maxDistance = 80) {
 // Cast 8 rays in a forward cone and return minimum distance
 function getProximity(robot, obstacles) {
     const angles = [-60, -40, -20, -10, 0, 10, 20, 40, 60];
-    let minDist = 80;
+    let minDist = 30;
     
     for (const offset of angles) {
         const rayAngle = robot.heading + offset;
