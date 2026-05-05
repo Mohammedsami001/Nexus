@@ -118,7 +118,8 @@ To connect a physical robot (e.g., a custom rover powered by a Raspberry Pi, ESP
       "source": "real_robot_01"
     }
     ```
-4.  **Stream to the Cloud:** The robot uses a WebSocket library to connect to `wss://nexus-dashboard-1006160179252.us-central1.run.app/ws/game-input`. It loops endlessly, sending the JSON payload at your desired frequency (e.g., 10Hz). Because NEXUS uses standard WebSockets, it seamlessly visualizes data from any hardware that matches this schema.
+4.  **Authentication:** The NEXUS input pipeline is secured. You must pass your `ROBOT_API_KEY` (configured in your `.env` file) as a query parameter.
+5.  **Stream to the Cloud:** The robot uses a WebSocket library to connect to `wss://nexus-dashboard-1006160179252.us-central1.run.app/ws/game-input?token=YOUR_API_KEY`. It loops endlessly, sending the JSON payload at your desired frequency (e.g., 10Hz). Because NEXUS uses standard WebSockets, it seamlessly visualizes data from any hardware that matches this schema.
 
 ---
 
@@ -181,6 +182,11 @@ The simulation employs a **Non-Holonomic Mobile Robot Model**.
 NEXUS is designed for high-throughput sensor telemetry using a non-blocking architecture.
 - **In-Memory Buffer**: Implements a thread-safe `collections.deque` with a fixed length of 1000. This ensures $O(1)$ access to historical data for ML re-training without the latency overhead of a traditional database.
 - **WebSocket Broadcasting**: The `ConnectionManager` utilizes a fan-out pattern. Each connected dashboard client has its own dedicated `asyncio.Queue`, preventing a single slow consumer from blocking the entire telemetry stream.
+
+### 3. Edge Robustness & Noise Filtering
+To handle the chaos of physical real-world deployments, NEXUS implements hardware-level safeguards:
+- **Exponential Backoff**: The edge client utilizes a dynamic reconnection formula `delay = 1s * (1.5 ^ attempts)` to handle dropped cellular/Wi-Fi connections gracefully without overloading the server upon network restoration.
+- **SMA Pre-Processing**: Physical sensors (like Ultrasonic or LiDAR) frequently produce 1-tick hardware spikes due to reflections or dust. The ML engine passes all raw telemetry through a **Simple Moving Average (SMA)** filter before Isolation Forest evaluation, mathematically eliminating false-positive anomalies caused by environmental noise.
 
 ---
 
