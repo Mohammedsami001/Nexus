@@ -3,7 +3,9 @@ class TelemetryClient {
         // Dynamically build the WebSocket URL from the current page location
         if (!url) {
             const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-            url = `${protocol}://${location.host}/ws/game-input`;
+            // Use the default API key to allow the local game client to connect
+            const token = 'nexus_secret_key_123';
+            url = `${protocol}://${location.host}/ws/game-input?token=${token}`;
         }
         this.url = url;
         this.ws = null;
