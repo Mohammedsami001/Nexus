@@ -63,7 +63,7 @@ sequenceDiagram
 2.  **ML Inference Engine (`/backend/ml`)**:
     *   Uses **Isolation Forest**, an unsupervised anomaly detection algorithm.
     *   Feature Engineering: Instead of raw coordinates, the model uses **Speed Delta** and **Heading Delta** to detect erratic jerky movements or sudden collisions.
-    *   **Warm-up Period**: Automatically baselines "normal" behavior during the first 200 readings before enabling live alerts.
+    *   **Warm-up Period**: Automatically baselines "normal" behavior during the first 20 readings before enabling live alerts.
 
 3.  **Real-Time Command Center UI (`/frontend`)**:
     *   **Radar Scanner**: High-performance Canvas API implementation of a traditional sweep radar. Visually tracks incoming obstacles detected by the hardware proximity sensors.
