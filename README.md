@@ -286,7 +286,7 @@ The system behavior can be tuned via the `.env` file to match specific hardware 
 | Variable | Default | Purpose |
 | :--- | :--- | :--- |
 | `TICK_RATE_HZ` | `1.0` | Global simulation frequency |
-| `WARMUP_READINGS` | `200` | Samples required for ML baseline |
+| `WARMUP_READINGS` | `20` | Samples required for ML baseline |
 | `ANOMALY_PROBABILITY` | `0.03` | Chance of auto-injected anomalies |
 | `BUFFER_SIZE` | `1000` | In-memory history retention |
 
