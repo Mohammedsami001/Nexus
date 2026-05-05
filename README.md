@@ -136,7 +136,7 @@ To connect a physical robot (e.g., a custom rover powered by a Raspberry Pi, ESP
 
 ---
 
-## 🧠 Machine Learning Deep Dive: The AI Brain
+## 🧠 Machine Learning Deep Dive: The AI Brain (My Personal Favourite)
 
 At the core of NEXUS lies an incredibly precise, unsupervised machine learning engine powered by Scikit-Learn's **Isolation Forest**. Instead of relying on hardcoded "if/else" thresholds that break in unpredictable real-world environments, NEXUS *learns* the robot's behavior in real-time.
 
