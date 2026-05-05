@@ -95,6 +95,33 @@ Open the **[Interactive Game](https://nexus-dashboard-1006160179252.us-central1.
 
 ---
 
+## 🔌 Hardware Integration Guide
+
+### 1. The Virtual Connection (Game ➔ Cloud)
+Currently, NEXUS acts as a central **Cloud Hub**. The Game and the Dashboard never talk directly to each other.
+- **The Sender (Game):** The `telemetry.js` script in your browser acts as the robot's brain. It calculates the virtual robot's state, packages it into a **JSON payload**, and sends it over a WebSocket connection to the cloud backend at `/ws/game-input`.
+- **The Processor (Cloud Backend):** The FastAPI server receives this JSON, passes it through the Machine Learning engine (Isolation Forest), and augments the payload with an anomaly score.
+- **The Receiver (Dashboard):** The server broadcasts the augmented JSON over a second WebSocket (`/ws/telemetry`). The Dashboard receives this and instantly updates the UI gauges.
+
+### 2. Connecting Real-World Robots
+To connect a physical robot (e.g., a custom rover powered by a Raspberry Pi, ESP32, or running ROS), **you do not need to change the NEXUS cloud backend.** You simply replace the virtual "Game" with your "Physical Robot".
+
+**Implementation Steps:**
+1.  **Internet Connectivity:** Ensure the robot has an active internet connection (Wi-Fi, 4G LTE, or 5G module).
+2.  **Read Physical Sensors:** Write a client script (Python, C++, Node.js) on the robot's onboard computer to read physical hardware (LiDAR/Ultrasonic for proximity, motor wheel encoders for speed, IMU/magnetometer for heading).
+3.  **Format the Data:** The robot's script must format these physical readings into the **exact same JSON structure** expected by NEXUS:
+    ```json
+    {
+      "proximity_cm": 152.4,
+      "speed_mps": 1.1,
+      "direction_deg": 90.0,
+      "source": "real_robot_01"
+    }
+    ```
+4.  **Stream to the Cloud:** The robot uses a WebSocket library to connect to `wss://nexus-dashboard-1006160179252.us-central1.run.app/ws/game-input`. It loops endlessly, sending the JSON payload at your desired frequency (e.g., 10Hz). Because NEXUS uses standard WebSockets, it seamlessly visualizes data from any hardware that matches this schema.
+
+---
+
 ## 🧠 Machine Learning Deep Dive
 
 ### Algorithm: Isolation Forest
