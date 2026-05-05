@@ -65,10 +65,11 @@ sequenceDiagram
     *   Feature Engineering: Instead of raw coordinates, the model uses **Speed Delta** and **Heading Delta** to detect erratic jerky movements or sudden collisions.
     *   **Warm-up Period**: Automatically baselines "normal" behavior during the first 200 readings before enabling live alerts.
 
-3.  **Real-Time Dashboard (`/frontend`)**:
-    *   **Radar Scanner**: High-performance Canvas API implementation of a traditional sweep radar.
-    *   **Glow-System**: Custom CSS variable-driven neon design system with scan-line effects.
-    *   **Dynamic Gauges**: SVG-based radial gauges with SVG-dasharray manipulation for smooth, hardware-accelerated transitions.
+3.  **Real-Time Command Center UI (`/frontend`)**:
+    *   **Radar Scanner**: High-performance Canvas API implementation of a traditional sweep radar. Visually tracks incoming obstacles detected by the hardware proximity sensors.
+    *   **Two-Tier Anomaly Warning System**: Dynamically evaluates the severity of detected anomalies. Minor deviations (like erratic driving) trigger a soft amber UI log. Critical anomalies (erratic driving while `< 50cm` from an obstacle) trigger an intense red screen flash and dashboard shake effect to instantly alert the operator of an imminent collision.
+    *   **Path Visualization**: A dedicated 2D canvas that paints a historical breadcrumb trail of the robot's physical trajectory. It utilizes geometric rendering to map exactly where the robot has been, mapping the spatial awareness directly to the operator's screen.
+    *   **Dynamic Gauges**: SVG-based radial gauges with `stroke-dasharray` manipulation for smooth, hardware-accelerated transitions of speed and proximity telemetry.
 
 ---
 
@@ -123,15 +124,22 @@ To connect a physical robot (e.g., a custom rover powered by a Raspberry Pi, ESP
 
 ---
 
-## 🧠 Machine Learning Deep Dive
+## 🧠 Machine Learning Deep Dive: The AI Brain
 
-### Algorithm: Isolation Forest
-Unlike traditional anomaly detection which attempts to model "normal" data, Isolation Forest explicitly isolates anomalies. Because anomalies are "few and different," they are easier to isolate in a tree-based partitioning space.
+At the core of NEXUS lies an incredibly precise, unsupervised machine learning engine powered by Scikit-Learn's **Isolation Forest**. Instead of relying on hardcoded "if/else" thresholds that break in unpredictable real-world environments, NEXUS *learns* the robot's behavior in real-time.
+
+### How It Works: The "Warm-Up" Phase
+Because every robot and physical environment is different, the ML model starts with a blank slate. When the system boots, it enters a mandatory **Warm-up Phase**. 
+During this period, the AI silently observes the robot's telemetry. It learns the baseline "normal" behavior—how fast the robot usually drives, how smoothly it turns, and how close it safely gets to walls. Once the warmup is complete, the model compiles this behavior into a `.pkl` brain file and switches to **ACTIVE** mode.
+
+### Unmatched Precision & Filtering
+Unlike traditional anomaly detection which attempts to model "normal" data (which is extremely difficult in noisy hardware environments), Isolation Forest explicitly isolates anomalies. Because anomalies are "few and different," they are easier to isolate in a tree-based partitioning space.
+We pair this AI with a **Simple Moving Average (SMA) Pre-Processing Filter**. By smoothing out 1-tick hardware spikes from the physical sensors *before* the data reaches the AI, we have practically eliminated false-positive alerts, resulting in a hyper-accurate, production-ready warning system.
 
 | Metric | Detail |
 | :--- | :--- |
 | **Input Vector** | `[proximity_cm, speed_mps, heading_delta, speed_delta]` |
-| **Warm-up Target** | 200 samples (Initial Baseline) |
+| **Warm-up Target** | 20 to 200 samples (Dynamic Initial Baseline) |
 | **Refit Frequency** | Every 500 readings (Adapts to environment changes) |
 | **Scoring** | Normalized Decision Function (Negative = Anomalous) |
 
