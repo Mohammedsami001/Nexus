@@ -44,6 +44,10 @@ class AnomalyDetector:
         self.readings_since_train = 0
         self.refit_interval = 500  # Re-fit every N readings (optional enhancement)
 
+        # Phase 3: Simple Moving Average (SMA) for noise filtering
+        self.sma_window_size = 3
+        self.recent_features_buffer: list[list[float]] = []
+
         # Try to load existing model (M7)
         self._try_load_model()
 
@@ -105,7 +109,15 @@ class AnomalyDetector:
             Tuple of (is_anomaly: bool, anomaly_score: float).
             During warm-up, returns (False, 0.0).
         """
-        features = self._extract_features(reading)
+        raw_features = self._extract_features(reading)
+
+        # Phase 3: Apply Simple Moving Average (SMA) filter to smooth spikes
+        self.recent_features_buffer.append(raw_features)
+        if len(self.recent_features_buffer) > self.sma_window_size:
+            self.recent_features_buffer.pop(0)
+
+        # Calculate the mean of the recent features window
+        features = np.mean(self.recent_features_buffer, axis=0).tolist()
 
         # M3: Still in warm-up period
         if not self.is_trained:
