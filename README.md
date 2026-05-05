@@ -269,6 +269,16 @@ Nexus/
 
 ---
 
+## 🔭 Future Scopes & Next Phases
+
+The project currently operates as a stable, high-fidelity proof-of-concept. The roadmap for future development includes:
+
+*   **Phase 4: Enterprise Scaling via MQTT**: Transitioning the current direct WebSocket ingestion pipeline to an industrial **MQTT Broker** (e.g., Eclipse Mosquitto). This will upgrade NEXUS from a 1:1 dashboard into a true **Fleet Management System**, capable of routing, managing, and monitoring hundreds of robots simultaneously with Quality of Service (QoS) guarantees.
+*   **Physical Rover Deployment**: Compiling the edge-client scripts and flashing them onto a physical Raspberry Pi or ESP32-powered rover to test the ML noise-filtering pipeline against true real-world environmental chaos.
+*   **SLAM Integration**: Upgrading the current 2D geometric path visualization into a full Simultaneous Localization and Mapping (SLAM) interface capable of plotting LiDAR point-clouds.
+
+---
+
 ## 🛠️ Performance & Tuning
 
 The system behavior can be tuned via the `.env` file to match specific hardware requirements:
