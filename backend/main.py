@@ -152,7 +152,6 @@ async def startup():
 
 @app.get("/health")
 async def health_check():
-    """B5: Health check for load balancer."""
     return {
         "status": "ok",
         "uptime_s": round(time.time() - START_TIME, 1),
@@ -165,7 +164,6 @@ async def health_check():
 
 @app.get("/api/telemetry/latest")
 async def get_latest():
-    """B1: Return the most recent sensor reading."""
     latest = buffer.get_latest()
     if latest is None:
         return {"error": "No readings yet", "status": "warming_up"}
@@ -174,13 +172,11 @@ async def get_latest():
 
 @app.get("/api/telemetry/history")
 async def get_history(limit: int = Query(default=100, ge=1, le=1000)):
-    """B2: Return the last N readings."""
     return buffer.get_history(limit=limit)
 
 
 @app.get("/api/anomalies")
 async def get_anomalies():
-    """B4: Return all detected anomaly events."""
     return buffer.get_anomalies()
 
 
@@ -188,7 +184,6 @@ async def get_anomalies():
 
 @app.websocket("/ws/telemetry")
 async def websocket_endpoint(websocket: WebSocket):
-    """B3: Real-time telemetry stream via WebSocket."""
     await ws_manager.connect(websocket)
     logger.info("Dashboard WS connected │ total=%d", ws_manager.client_count)
 
