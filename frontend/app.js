@@ -50,7 +50,6 @@ const dom = {
     app: document.getElementById('app')
 };
 
-// ── Particle System ──────────────────────────────────────────
 function initParticles() {
     const canvas = document.getElementById('particle-canvas');
     const ctx = canvas.getContext('2d');
@@ -110,7 +109,6 @@ function initParticles() {
     draw();
 }
 
-// ── Speed Gauge ──────────────────────────────────────────────
 const GAUGE_MAX_ARC = 400; // stroke-dasharray max for 270deg arc
 
 function updateSpeedGauge(speed) {
@@ -139,7 +137,6 @@ function updateSpeedGauge(speed) {
     dom.speedArcGlow.setAttribute('stroke', color);
 }
 
-// ── Radar ────────────────────────────────────────────────────
 function initRadar() {
     const canvas = document.getElementById('radar-canvas');
     const ctx = canvas.getContext('2d');
@@ -233,7 +230,6 @@ function initRadar() {
     draw();
 }
 
-// ── Compass ──────────────────────────────────────────────────
 function updateCompass(deg) {
     // Shortest path rotation
     let current = state.lastDirection;
@@ -246,7 +242,6 @@ function updateCompass(deg) {
     dom.headingValue.textContent = deg.toFixed(1);
 }
 
-// Generate compass marks
 function initCompassMarks() {
     const g = document.getElementById('compass-marks');
     for (let i = 0; i < 360; i += 10) {
@@ -268,7 +263,6 @@ function initCompassMarks() {
     }
 }
 
-// ── Telemetry Chart ──────────────────────────────────────────
 function initChart() {
     const ctx = document.getElementById('telemetry-chart').getContext('2d');
 
@@ -389,7 +383,6 @@ function updateChart(reading) {
     chart.update('none');
 }
 
-// ── Anomaly Log ──────────────────────────────────────────────
 function addAnomalyEntry(reading) {
     state.anomalyCount++;
     dom.anomalyCounter.textContent = state.anomalyCount;
@@ -441,7 +434,6 @@ function addAnomalyEntry(reading) {
     }
 }
 
-// ── Path Visualization ───────────────────────────────────────
 function initPathViz() {
     // Generate random obstacles
     for (let i = 0; i < 12; i++) {
@@ -535,7 +527,6 @@ function drawPathViz(reading) {
     dom.robotPosDisplay.textContent = `X: ${reading.pos_x.toFixed(0)}  Y: ${reading.pos_y.toFixed(0)}`;
 }
 
-// ── Proximity Update ─────────────────────────────────────────
 function updateProximity(val) {
     dom.proximityValue.textContent = val.toFixed(1);
     if (val < 30) {
@@ -545,7 +536,6 @@ function updateProximity(val) {
     }
 }
 
-// ── Health Polling ───────────────────────────────────────────
 async function pollHealth() {
     try {
         const res = await fetch('/health');
@@ -581,7 +571,6 @@ async function pollHealth() {
     } catch (e) { /* silent */ }
 }
 
-// ── WebSocket Connection ─────────────────────────────────────
 function connectWS() {
     const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
     const wsUrl = `${protocol}://${location.host}/ws/telemetry`;
@@ -659,7 +648,6 @@ function connectWS() {
     };
 }
 
-// ── Initialize ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     initParticles();
     initCompassMarks();

@@ -1,5 +1,5 @@
 """
-FastAPI Application Entry Point (B1–B7, D5)
+FastAPI Application Entry Point 
 
 Main server that orchestrates:
 - Robot sensor simulator (background task)

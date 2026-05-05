@@ -1,5 +1,5 @@
 """
-WebSocket Connection Manager (B3, M6)
+WebSocket Connection Manager
 
 Manages active WebSocket connections and broadcasts telemetry + anomaly events.
 Uses per-client asyncio queues to avoid concurrent send/receive issues.
@@ -31,10 +31,6 @@ class ConnectionManager:
         self.active_connections.pop(websocket, None)
 
     async def broadcast(self, data: dict):
-        """
-        B3/M6: Push data into every client's queue (non-blocking).
-        The actual sending happens in each client's send_loop.
-        """
         dead = []
         for ws, queue in self.active_connections.items():
             try:
@@ -45,10 +41,6 @@ class ConnectionManager:
             self.disconnect(ws)
 
     async def send_loop(self, websocket: WebSocket):
-        """
-        Drain the queue for a specific client and send messages.
-        Runs as a separate task per client.
-        """
         queue = self.active_connections.get(websocket)
         if not queue:
             return

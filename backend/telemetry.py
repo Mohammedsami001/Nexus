@@ -1,5 +1,5 @@
 """
-Telemetry Buffer & Data Models (B1, B2, B4, B7)
+Telemetry Buffer & Data Models
 
 In-memory rolling buffer for sensor readings. No database needed.
 """
@@ -37,10 +37,6 @@ class AnomalyEvent(BaseModel):
 
 
 class TelemetryBuffer:
-    """
-    B7: Rolling in-memory buffer of last N readings.
-    Thread-safe via deque's atomic append/pop operations.
-    """
 
     def __init__(self, maxlen: int = 1000):
         self.readings: deque = deque(maxlen=maxlen)
@@ -63,18 +59,18 @@ class TelemetryBuffer:
         self.anomalies.append(event)
 
     def get_latest(self) -> Optional[dict]:
-        """B1: Return the most recent reading."""
+        """Return the most recent reading."""
         if self.readings:
             return self.readings[-1]
         return None
 
     def get_history(self, limit: int = 100) -> list[dict]:
-        """B2: Return the last N readings."""
+        """Return the last N readings."""
         items = list(self.readings)
         return items[-limit:]
 
     def get_anomalies(self) -> list[dict]:
-        """B4: Return all detected anomaly events."""
+        """Return all detected anomaly events."""
         return [a.model_dump() for a in self.anomalies]
 
     @property

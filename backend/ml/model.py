@@ -1,6 +1,5 @@
 """
-Anomaly Detection Engine (M1–M7)
-
+Anomaly Detection Engine
 IsolationForest-based unsupervised anomaly detection on robot sensor streams.
 Warm-up period: trains on first 200 readings, then scores every new reading.
 """
@@ -17,11 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class AnomalyDetector:
-    """
-    M1: Wraps sklearn IsolationForest for real-time anomaly detection.
-    M3: Warm-up period — collects baseline readings before training.
-    M4: Online inference after warm-up.
-    """
 
     def __init__(
         self,
@@ -29,12 +23,6 @@ class AnomalyDetector:
         contamination: float = 0.05,
         model_path: str = "backend/ml/model.pkl",
     ):
-        """
-        Args:
-            warmup_readings: Number of readings to collect before training (M3).
-            contamination: Expected fraction of anomalies in the data.
-            model_path: Path to save/load the trained model (M7).
-        """
         self.warmup_readings = warmup_readings
         self.contamination = contamination
         self.model_path = model_path
@@ -52,7 +40,6 @@ class AnomalyDetector:
         self._try_load_model()
 
     def _try_load_model(self):
-        """M7: Attempt to load a previously saved model."""
         if os.path.exists(self.model_path):
             try:
                 self.model = joblib.load(self.model_path)
@@ -62,10 +49,6 @@ class AnomalyDetector:
                 logger.warning("Failed to load model: %s", e)
 
     def _extract_features(self, reading: dict) -> list[float]:
-        """
-        M2: Extract feature vector from a sensor reading.
-        Features: [proximity_cm, speed_mps, direction_delta, speed_delta]
-        """
         return [
             reading.get("proximity_cm", 0.0),
             reading.get("speed_mps", 0.0),
@@ -99,16 +82,7 @@ class AnomalyDetector:
             logger.warning("Failed to save model: %s", e)
 
     def predict(self, reading: dict) -> tuple[bool, float]:
-        """
-        M4/M5: Score a new reading for anomalies.
 
-        Args:
-            reading: Sensor reading dict.
-
-        Returns:
-            Tuple of (is_anomaly: bool, anomaly_score: float).
-            During warm-up, returns (False, 0.0).
-        """
         raw_features = self._extract_features(reading)
 
         # Phase 3: Apply Simple Moving Average (SMA) filter to smooth spikes

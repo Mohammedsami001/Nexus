@@ -212,7 +212,8 @@ To handle the chaos of physical real-world deployments, NEXUS implements hardwar
 
 ## 🚀 Quick Start & Deployment
 
-### 🐳 Local Orchestration (Docker)
+### 💻 Local Development (Native Python)
+For the fastest development experience, run the server natively:
 ```bash
 # Clone & Navigate
 git clone https://github.com/Mohammedsami001/Nexus.git && cd Nexus
@@ -220,7 +221,16 @@ git clone https://github.com/Mohammedsami001/Nexus.git && cd Nexus
 # Setup Environment
 cp .env.example .env
 
-# Deploy Stack
+# Install Dependencies
+pip install -r requirements.txt
+
+# Run the unified FastAPI server
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 🐳 Local Orchestration (Docker)
+To run the exact containerized environment used in cloud production:
+```bash
 docker-compose up --build -d
 ```
 
