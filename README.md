@@ -291,7 +291,11 @@ The system behavior can be tuned via the `.env` file to match specific hardware 
 | `BUFFER_SIZE` | `1000` | In-memory history retention |
 
 ---
-
+<div align="center">
+  <h1>DISCLAIMER!</h1>
+  <h1>(sorry about my frustration to those who doesn't know why i made this project, just see it as one of my projects)</h1>
+  <h1>THE PROJECT ISN'T THAT EASY THAT IT WOULD BE COMPLETED WITHIN ONE DAY, SO I TOOK TOTAL OF 6 DAYS TO COMPLETE IT AND UNDERSTAND ALL THE ML CONCEPTS, ROBOTICS CONCEPTS AND ALSO CREATED SIMULATION JUST SO THAT SOME PEOPLE WHO DON'T UNDERSTAND THE PROJECT(which happened apparently) WOULD GET AN IDEA OF WHAT I HAVE BUILT. EVEN IF THERE IS USE OF AI, THAT DOESN'T MEAN THAT I HAVE NO KNOWLEDGE ABOUT WHAT I HAVE BUILT. I HAVE SPENT SLEEPLESS NIGHTS(sometimes the whole night) DEBUGGING AND UNDERSTANDING THE WHOLE PROJECT. I DID MY PART, IDGAF</h1>
+</div>
 <p align="center">
   <strong>Built with Precision by SAMI</strong>
 </p>
